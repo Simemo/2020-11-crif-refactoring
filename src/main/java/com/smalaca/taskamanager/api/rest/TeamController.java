@@ -10,6 +10,7 @@ import com.smalaca.taskamanager.model.entities.Team;
 import com.smalaca.taskamanager.model.entities.User;
 import com.smalaca.taskamanager.repository.TeamRepository;
 import com.smalaca.taskamanager.repository.UserRepository;
+import com.smalaca.taskamanager.v2.application.ApplicationTeamService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,24 +78,7 @@ public class TeamController {
     }
 
     private Optional<TeamDto> findTeamById(Long id) {
-        try {
-            Team team = getTeamById(id);
-            TeamDto dto = new TeamDto();
-            dto.setId(team.getId());
-            dto.setName(team.getName());
-
-            if (team.getCodename() != null) {
-                dto.setCodenameShort(team.getCodename().getShortName());
-                dto.setCodenameFull(team.getCodename().getFullName());
-            }
-
-            dto.setDescription(team.getDescription());
-            dto.setUserIds(team.getMembers().stream().map(User::getId).collect(toList()));
-            return Optional.of(dto);
-
-        } catch (TeamNotFoundException exception) {
-            return Optional.empty();
-        }
+        return new ApplicationTeamService(teamRepository).findById(id);
     }
 
     @PostMapping
