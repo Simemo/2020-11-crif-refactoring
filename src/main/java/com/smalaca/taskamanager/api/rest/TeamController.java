@@ -67,29 +67,34 @@ public class TeamController {
     @GetMapping("/{id}")
     @Transactional
     public ResponseEntity<TeamDto> findById(@PathVariable Long id) {
-        try {
-            TeamDto dto = findTeamById(id);
+        Optional<TeamDto> dto = findTeamById(id);
 
-            return new ResponseEntity<>(dto, HttpStatus.OK);
-        } catch (TeamNotFoundException exception) {
+        if (dto.isPresent()) {
+            return new ResponseEntity<>(dto.get(), HttpStatus.OK);
+        } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    private TeamDto findTeamById(Long id) throws TeamNotFoundException {
-        Team team = getTeamById(id);
-        TeamDto dto = new TeamDto();
-        dto.setId(team.getId());
-        dto.setName(team.getName());
+    private Optional<TeamDto> findTeamById(Long id) {
+        try {
+            Team team = getTeamById(id);
+            TeamDto dto = new TeamDto();
+            dto.setId(team.getId());
+            dto.setName(team.getName());
 
-        if (team.getCodename() != null) {
-            dto.setCodenameShort(team.getCodename().getShortName());
-            dto.setCodenameFull(team.getCodename().getFullName());
+            if (team.getCodename() != null) {
+                dto.setCodenameShort(team.getCodename().getShortName());
+                dto.setCodenameFull(team.getCodename().getFullName());
+            }
+
+            dto.setDescription(team.getDescription());
+            dto.setUserIds(team.getMembers().stream().map(User::getId).collect(toList()));
+            return Optional.of(dto);
+
+        } catch (TeamNotFoundException exception) {
+            return Optional.empty();
         }
-
-        dto.setDescription(team.getDescription());
-        dto.setUserIds(team.getMembers().stream().map(User::getId).collect(toList()));
-        return dto;
     }
 
     @PostMapping
